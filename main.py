@@ -2,7 +2,10 @@ import random # For generating random numbers
 import sys
 import pygame
 from pygame.locals import *
+import os
+pygame.mixer.init()
 
+pygame.init()
 # Global Variables for the game
 FPS = 32
 SCREENWIDTH = 289
@@ -15,6 +18,26 @@ PLAYER = 'gallery/sprites/bird.png'
 BACKGROUND = 'gallery/sprites/background.png'
 PIPE = 'gallery/sprites/pipe.png'
 
+white = (255, 255, 255)
+red = (255, 0, 0)
+black = (0, 0, 0)
+# Game Title
+pygame.display.set_caption("Snake Game")
+pygame.display.update()
+clock = pygame.time.Clock()
+font = pygame.font.SysFont(None, 55)
+
+if (not os.path.exists("hiscore.txt")):
+    with open("hiscore.txt", "w") as f:
+        f.write("0")
+with open("hiscore.txt", "r") as f:
+    hiscore = f.read()
+
+
+def text_screen(text, color, x, y):
+    screen_text = font.render(text, True, color)
+    SCREEN .blit(screen_text, [x,y])
+
 def welcomeScreen():
     """
     Shows welcome images on the screen
@@ -25,6 +48,9 @@ def welcomeScreen():
     messagex = int((SCREENWIDTH - GAME_SPRITES['message'].get_width())/2)
     messagey = int(SCREENHEIGHT*0.13)
     basex = 0
+
+
+
     while True:
         for event in pygame.event.get():
             # if user clicks on cross button, close the game
@@ -39,11 +65,13 @@ def welcomeScreen():
                 SCREEN.blit(GAME_SPRITES['background'], (0, 0))    
                 SCREEN.blit(GAME_SPRITES['player'], (playerx, playery))    
                 SCREEN.blit(GAME_SPRITES['message'], (messagex,messagey ))    
-                SCREEN.blit(GAME_SPRITES['base'], (basex, GROUNDY))    
+                SCREEN.blit(GAME_SPRITES['base'], (basex, GROUNDY))
+                text_screen("High Score: " + str(hiscore), red, 5, 5)
                 pygame.display.update()
                 FPSCLOCK.tick(FPS)
 
 def mainGame():
+    global hiscore
     score = 0
     playerx = int(SCREENWIDTH/5)
     playery = int(SCREENWIDTH/2)
@@ -89,7 +117,8 @@ def mainGame():
 
         crashTest = isCollide(playerx, playery, upperPipes, lowerPipes) # This function will return true if the player is crashed
         if crashTest:
-            return     
+            return
+
 
         #check for score
         playerMidPos = playerx + GAME_SPRITES['player'].get_width()/2
@@ -97,6 +126,13 @@ def mainGame():
             pipeMidPos = pipe['x'] + GAME_SPRITES['pipe'][0].get_width()/2
             if pipeMidPos<= playerMidPos < pipeMidPos +4:
                 score +=1
+                with open("hiscore.txt", "r") as f:
+                    hiscore = f.read()
+                if score>int(hiscore):
+                    hiscore = score
+                    with open("hiscore.txt", "w") as f:
+                        f.write(str(hiscore))
+
                 print(f"Your score is {score}") 
                 GAME_SOUNDS['point'].play()
 
